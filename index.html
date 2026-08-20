@@ -166,7 +166,108 @@
             transform: scale(1.1);
         }
 
-        /* Большой квадрат */
+        /* ===== Пузырёк выбора (блокнот / календарь) ===== */
+        .choice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 200;
+        }
+
+        .choice-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .choice-card {
+            position: relative;
+            background: rgba(35, 10, 60, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 35px 30px 30px;
+            width: 300px;
+            max-width: 85vw;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .choice-modal.active .choice-card {
+            transform: scale(1);
+        }
+
+        .choice-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .choice-close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .choice-title {
+            font-size: 18px;
+            letter-spacing: 1px;
+            margin: 0 0 6px;
+            opacity: 0.9;
+        }
+
+        .choice-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            padding: 16px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .choice-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .choice-btn .choice-icon {
+            font-size: 20px;
+        }
+
+        /* Большой квадрат (календарь) */
         .modal-card {
             position: fixed;
             width: 85vw;
@@ -216,6 +317,60 @@
 
         .close-btn:hover {
             background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ===== Блокнот ===== */
+        .notepad-modal {
+            position: fixed;
+            width: 85vw;
+            height: 85vh;
+            max-height: 800px;
+            background: rgba(35, 10, 60, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: scale(0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .notepad-modal.active {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .notepad-textarea {
+            flex-grow: 1;
+            width: 100%;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            color: #fff;
+            padding: 20px;
+            font-size: 16px;
+            font-family: inherit;
+            line-height: 1.5;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .notepad-textarea:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .notepad-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
         }
 
         /* Контейнер дней с правильным скроллом */
@@ -407,7 +562,8 @@
                 font-size: 20px;
             }
 
-            .modal-card {
+            .modal-card,
+            .notepad-modal {
                 width: 94vw;
                 height: 92vh;
                 max-height: none;
@@ -471,7 +627,17 @@
     <!-- Глянцевая надпись сверху -->
     <div class="site-title">maledict</div>
 
-    <button class="open-btn" onclick="toggleModal()">+</button>
+    <button class="open-btn" onclick="toggleChoiceModal()">+</button>
+
+    <!-- Пузырёк выбора: блокнот или календарь -->
+    <div class="choice-modal" id="choiceModal" onclick="toggleChoiceModal()">
+        <div class="choice-card" onclick="event.stopPropagation()">
+            <button class="choice-close-btn" onclick="toggleChoiceModal()">✕</button>
+            <p class="choice-title">Что открыть?</p>
+            <div class="choice-btn" onclick="chooseNotepad()"><span class="choice-icon">📝</span> Блокнот</div>
+            <div class="choice-btn" onclick="chooseCalendar()"><span class="choice-icon">📅</span> Календарь</div>
+        </div>
+    </div>
 
     <div class="modal-card" id="myModal">
         <div class="modal-header">
@@ -479,6 +645,15 @@
         </div>
 
         <div class="days-container" id="daysContainer"></div>
+    </div>
+
+    <!-- Блокнот -->
+    <div class="notepad-modal" id="notepadModal">
+        <div class="modal-header">
+            <button class="close-btn" onclick="toggleNotepadModal()">✕</button>
+        </div>
+
+        <textarea class="notepad-textarea" id="notepadTextarea" placeholder="Пиши сюда..." oninput="saveNotepad(this.value)"></textarea>
     </div>
 
     <script>
@@ -567,6 +742,41 @@
         function toggleInfoModal() {
             const infoModal = document.getElementById('infoModal');
             infoModal.classList.toggle('active');
+        }
+
+        // Управление пузырьком выбора
+        function toggleChoiceModal() {
+            const choiceModal = document.getElementById('choiceModal');
+            choiceModal.classList.toggle('active');
+        }
+
+        function chooseCalendar() {
+            toggleChoiceModal();
+            toggleModal();
+        }
+
+        function chooseNotepad() {
+            toggleChoiceModal();
+            toggleNotepadModal();
+        }
+
+        // Управление блокнотом
+        function toggleNotepadModal() {
+            const notepadModal = document.getElementById('notepadModal');
+            const wasActive = notepadModal.classList.contains('active');
+            notepadModal.classList.toggle('active');
+
+            if (!wasActive) {
+                document.getElementById('notepadTextarea').value = loadNotepad();
+            }
+        }
+
+        function loadNotepad() {
+            return localStorage.getItem('notepadText') || '';
+        }
+
+        function saveNotepad(value) {
+            localStorage.setItem('notepadText', value);
         }
 
         function toggleDay(element) {
