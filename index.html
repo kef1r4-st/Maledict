@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maledict</title>
+    <style>
+        :root {
+            --grad-1: #2b0b42;
+            --grad-2: #4a154b;
+            --grad-3: #7b1fa2;
+            --grad-4: #311b92;
+            --modal-bg: rgba(35, 10, 60, 0.88);
+            --line-bg: rgba(65, 20, 105, 0.55);
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg, var(--grad-1), var(--grad-2), var(--grad-3), var(--grad-4));
+            background-size: 400% 400%;
+            animation: gradientAnimation 12s ease infinite;
+            font-family: sans-serif;
+            overflow: hidden;
+            position: relative;
+            transition: background 0.5s ease;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Кнопка настроек в левом углу */
+        .settings-btn {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            width: 45px;
+            height: 45px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        .settings-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Кнопка с информацией «i» в правом углу */
+        .info-btn {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+            font-weight: bold;
+            font-style: italic;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .info-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        /* Общие модальные окна */
+        .info-modal, .choice-modal, .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 200;
+        }
+
+        .info-modal.active, .choice-modal.active, .settings-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .info-card, .settings-card {
+            background: var(--modal-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            width: 320px;
+            max-width: 85vw;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s ease;
+        }
+
+        .info-modal.active .info-card, .settings-modal.active .settings-card {
+            transform: scale(1);
+        }
+
+        .info-card h3, .settings-card h3 {
+            margin-top: 0;
+            font-size: 20px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 10px;
+        }
+
+        /* Сетка выбора цветов */
+        .color-presets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .color-preset-btn {
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .color-preset-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Стили для авторов */
+        .author-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0;
+            font-size: 16px;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .info-close-btn, .settings-close-btn {
+            margin-top: 10px;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .info-close-btn:hover, .settings-close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Надпись MALEDICT */
+        .site-title {
+            position: absolute;
+            top: 15vh;
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.4),
+                0 0 15px rgba(180, 130, 255, 0.6),
+                0 0 30px rgba(120, 50, 200, 0.4);
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Главная кнопка '+' */
+        .open-btn {
+            width: 60px;
+            height: 60px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .open-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        /* Пузырёк выбора */
+        .choice-card {
+            position: relative;
+            background: var(--modal-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 35px 30px 30px;
+            width: 300px;
+            max-width: 85vw;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .choice-modal.active .choice-card {
+            transform: scale(1);
+        }
+
+        .choice-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .choice-close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .choice-title {
+            font-size: 18px;
+            letter-spacing: 1px;
+            margin: 0 0 6px;
+            opacity: 0.9;
+        }
+
+        .choice-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            padding: 16px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .choice-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+        }
+
+        .choice-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.85;
+        }
+
+        /* Календарь и Блокнот модалки */
+        .modal-card, .notepad-modal {
+            position: fixed;
+            width: 85vw;
+            height: 85vh;
+            max-height: 800px;
+            background: var(--modal-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: scale(0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease, background 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            box-sizing: border-box;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .modal-card.active, .notepad-modal.active {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 5px;
+            flex-shrink: 0;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .notepad-input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 15px;
+            border-radius: 18px;
+        }
+
+        .notepad-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .notepad-field {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            color: #fff;
+            padding: 12px 18px;
+            font-size: 18px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .notepad-field:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .notepad-field::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .notepad-add-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0 24px;
+            height: 50px;
+            border-radius: 14px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .notepad-add-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .notepad-lines-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 5px;
+        }
+
+        .notepad-lines-container::-webkit-scrollbar, .days-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .notepad-lines-container::-webkit-scrollbar-thumb, .days-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notepad-line {
+            background: var(--line-bg);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 20px 24px;
+            border-radius: 20px;
+            font-size: 18px;
+            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: background 0.5s ease;
+        }
+
+        .notepad-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            word-break: break-word;
+            white-space: pre-wrap;
+            max-height: 5.6em;
+            overflow-y: auto;
+        }
+
+        .notepad-line-delete {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            font-size: 18px;
+            transition: color 0.2s;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .notepad-line-delete:hover {
+            color: #ffb3b3;
+        }
+
+        .days-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+            overflow-y: auto;
+            padding-right: 5px;
+            flex-grow: 1;
+        }
+
+        .day-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .day-bar {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .day-bar:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .sub-bar {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .day-wrapper.active .sub-bar {
+            max-height: 600px;
+            opacity: 1;
+            margin-top: 8px;
+            padding: 5px;
+        }
+
+        .entry-island {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .time-box {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .time-input, .text-input {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .time-input:focus, .text-input:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .time-input {
+            width: 75px;
+        }
+
+        .ampm-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ampm-select {
+            background: var(--modal-bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 6px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .ampm-delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 4px;
+            transition: color 0.2s;
+        }
+
+        .ampm-delete-btn:hover {
+            color: #ffb3b3;
+        }
+
+        .name-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .desc-input {
+            flex: 1.5;
+            min-width: 0;
+        }
+
+        .island-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .delete-btn {
+            background: rgba(255, 80, 80, 0.2);
+            border-color: rgba(255, 80, 80, 0.3);
+            color: #ffb3b3;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 80, 80, 0.4);
+        }
+
+        .limit-text {
+            font-size: 13px;
+            opacity: 0.5;
+            font-style: italic;
+        }
+
+        @media (max-width: 700px) {
+            .site-title {
+                font-size: 28px;
+                top: 8vh;
+                letter-spacing: 2px;
+                text-align: center;
+                padding: 0 10px;
+            }
+
+            .info-btn, .settings-btn {
+                top: 15px;
+                width: 38px;
+                height: 38px;
+            }
+
+            .info-btn { right: 15px; }
+            .settings-btn { left: 15px; }
+
+            .open-btn {
+                width: 50px;
+                height: 50px;
+            }
+
+            .modal-card, .notepad-modal {
+                width: 94vw;
+                height: 92vh;
+                max-height: none;
+                padding: 16px;
+                border-radius: 20px;
+            }
+
+            .notepad-row { flex-wrap: wrap; }
+            .notepad-field { flex: 1 1 100%; }
+            .notepad-add-btn { flex: 1; width: 100%; }
+
+            .day-bar { padding: 12px 16px; font-size: 15px; }
+            .entry-island { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+
+            .time-box { width: 100%; justify-content: space-between; }
+            .time-input { flex: 1; width: auto; }
+            .ampm-container { flex-shrink: 0; }
+            .name-input, .desc-input { flex: 1 1 100%; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Кнопка настроек в левом верхнем углу -->
+    <button class="settings-btn" onclick="toggleSettingsModal()">
+        <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+    </button>
+
+    <!-- Модальное окно настроек -->
+    <div class="settings-modal" id="settingsModal" onclick="toggleSettingsModal()">
+        <div class="settings-card" onclick="event.stopPropagation()">
+            <h3>Выбор темы</h3>
+
+            <div class="color-presets-grid">
+                <button class="color-preset-btn" style="background: linear-gradient(135deg, #2b0b42, #7b1fa2);" onclick="applyThemePreset('default')">Обычный</button>
+                <button class="color-preset-btn" style="background: linear-gradient(135deg, #42380b, #a2891f);" onclick="applyThemePreset('yellow')">Желтый</button>
+                <button class="color-preset-btn" style="background: linear-gradient(135deg, #0b4215, #1fa241);" onclick="applyThemePreset('green')">Зеленый</button>
+                <button class="color-preset-btn" style="background: linear-gradient(135deg, #420b0b, #a21f1f);" onclick="applyThemePreset('red')">Красный</button>
+                <button class="color-preset-btn" style="background: linear-gradient(135deg, #333333, #777777); grid-column: span 2;" onclick="applyThemePreset('white')">Белый</button>
+            </div>
+
+            <button class="settings-close-btn" onclick="toggleSettingsModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Кнопка «i» в правом верхнем углу -->
+    <button class="info-btn" onclick="toggleInfoModal()">i</button>
+
+    <!-- Модальное окно с информацией об авторах -->
+    <div class="info-modal" id="infoModal" onclick="toggleInfoModal()">
+        <div class="info-card" onclick="event.stopPropagation()">
+            <h3>Авторы и соавторы</h3>
+            <div class="author-row">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdHP83sREzxiJ7Vzz0QnbsvBzo1lfiVI8j5w9rF00fsA&s=10" alt="kef1r" class="author-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222%22><path d=%22M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2%22/><circle cx=%2212%22 cy=%227%22 r=%224%22/></svg>'">
+                <span><b>Автор:</b> kef1r</span>
+            </div>
+            <div class="author-row">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSenDWmnyQrDVwAoN79avV6TX0BnWOcZif4kiqVomjd0bzGiuYgq6B4nkjG&s=10" alt="Zef1r" class="author-avatar" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23fff%22 stroke-width=%222%22><path d=%22M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2%22/><circle cx=%2212%22 cy=%227%22 r=%224%22/></svg>'">
+                <span><b>Главный соавтор:</b> Zef1r</span>
+            </div>
+            <button class="info-close-btn" onclick="toggleInfoModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="site-title">maledict</div>
+
+    <button class="open-btn" onclick="toggleChoiceModal()">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+
+    <div class="choice-modal" id="choiceModal" onclick="toggleChoiceModal()">
+        <div class="choice-card" onclick="event.stopPropagation()">
+            <button class="choice-close-btn" onclick="toggleChoiceModal()">✕</button>
+            <p class="choice-title">Что открыть?</p>
+
+            <div class="choice-btn" onclick="chooseNotepad()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                Блокнот
+            </div>
+
+            <div class="choice-btn" onclick="chooseCalendar()">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Календарь
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-card" id="myModal">
+        <div class="modal-header">
+            <button class="close-btn" onclick="toggleModal()">✕</button>
+        </div>
+        <div class="days-container" id="daysContainer"></div>
+    </div>
+
+    <div class="notepad-modal" id="notepadModal">
+        <div class="modal-header">
+            <button class="close-btn" onclick="toggleNotepadModal()">✕</button>
+        </div>
+        <div class="notepad-input-box">
+            <div class="notepad-row">
+                <input type="text" class="notepad-field" id="notepadInput" placeholder="Пиши сюда и нажми Enter..." onkeydown="handleNotepadKey(event)">
+                <button class="notepad-add-btn" onclick="addNotepadLine()">Добавить</button>
+            </div>
+        </div>
+        <div class="notepad-lines-container" id="notepadLinesContainer"></div>
+    </div>
+
+    <script>
+        const daysData = [
+            { id: 'mon', name: 'ПОНЕДЕЛЬНИК', short: 'ПН' },
+            { id: 'tue', name: 'ВТОРНИК', short: 'ВТ' },
+            { id: 'wed', name: 'СРЕДА', short: 'СР' },
+            { id: 'thu', name: 'ЧЕТВЕРГ', short: 'ЧТ' },
+            { id: 'fri', name: 'ПЯТНИЦА', short: 'ПТ' },
+            { id: 'sat', name: 'СУББОТА', short: 'СБ' },
+            { id: 'sun', name: 'ВОСКРЕСЕНЬЕ', short: 'ВС' }
+        ];
+
+        // Готовые наборы тем (фон + цвета модалок)
+        const themes = {
+            default: {
+                grad: ['#2b0b42', '#4a154b', '#7b1fa2', '#311b92'],
+                modal: 'rgba(35, 10, 60, 0.88)',
+                line: 'rgba(65, 20, 105, 0.55)'
+            },
+            yellow: {
+                grad: ['#42380b', '#5a4c10', '#a2891f', '#3b3407'],
+                modal: 'rgba(60, 50, 10, 0.88)',
+                line: 'rgba(105, 90, 20, 0.55)'
+            },
+            green: {
+                grad: ['#0b4215', '#105920', '#1fa241', '#11311b'],
+                modal: 'rgba(10, 60, 22, 0.88)',
+                line: 'rgba(20, 105, 40, 0.55)'
+            },
+            red: {
+                grad: ['#420b0b', '#591010', '#a21f1f', '#311b1b'],
+                modal: 'rgba(60, 10, 10, 0.88)',
+                line: 'rgba(105, 20, 20, 0.55)'
+            },
+            white: {
+                grad: ['#333333', '#555555', '#888888', '#222222'],
+                modal: 'rgba(45, 45, 45, 0.88)',
+                line: 'rgba(80, 80, 80, 0.55)'
+            }
+        };
+
+        function applyThemePreset(themeKey) {
+            const t = themes[themeKey];
+            if (!t) return;
+
+            document.documentElement.style.setProperty('--grad-1', t.grad[0]);
+            document.documentElement.style.setProperty('--grad-2', t.grad[1]);
+            document.documentElement.style.setProperty('--grad-3', t.grad[2]);
+            document.documentElement.style.setProperty('--grad-4', t.grad[3]);
+            document.documentElement.style.setProperty('--modal-bg', t.modal);
+            document.documentElement.style.setProperty('--line-bg', t.line);
+
+            localStorage.setItem('selectedThemeKey', themeKey);
+        }
+
+        function loadTheme() {
+            const savedKey = localStorage.getItem('selectedThemeKey') || 'default';
+            applyThemePreset(savedKey);
+        }
+
+        loadTheme();
+
+        function loadData() {
+            return JSON.parse(localStorage.getItem('weekSchedule')) || {};
+        }
+
+        function saveData(data) {
+            localStorage.setItem('weekSchedule', JSON.stringify(data));
+        }
+
+        function getCurrentTimeAndAmPm() {
+            const now = new Date();
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return { time: `${hours}:${minutes}`, ampm: ampm };
+        }
+
+        function renderDays() {
+            const container = document.getElementById('daysContainer');
+            const data = loadData();
+            container.innerHTML = '';
+
+            daysData.forEach(day => {
+                const dayEntries = data[day.id] || [];
+                const isMaxReached = dayEntries.length >= 3;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'day-wrapper';
+                wrapper.dataset.dayId = day.id;
+
+                wrapper.innerHTML = `
+                    <div class="day-bar" onclick="toggleDay(this)">
+                        ${day.name} <span style="opacity: 0.6;">${day.short}</span>
+                    </div>
+                    <div class="sub-bar">
+                        <div class="entries-list" data-day="${day.id}"></div>
+                        <div class="island-actions">
+                            ${!isMaxReached ? `<button class="action-btn" onclick="addEntry('${day.id}')">+ Добавить</button>` : '<span class="limit-text">Максимум 3 записи</span>'}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(wrapper);
+
+                const listContainer = wrapper.querySelector('.entries-list');
+                dayEntries.forEach((entry, index) => {
+                    const island = document.createElement('div');
+                    island.className = 'entry-island';
+
+                    let ampmBlock = '';
+                    if (entry.ampm !== null && entry.ampm !== undefined) {
+                        ampmBlock = `
+                            <div class="ampm-container">
+                                <select class="ampm-select" onchange="updateEntry('${day.id}', ${index}, 'ampm', this.value)">
+                                    <option value="AM" ${entry.ampm === 'AM' ? 'selected' : ''}>AM</option>
+                                    <option value="PM" ${entry.ampm === 'PM' ? 'selected' : ''}>PM</option>
+                                </select>
+                                <button class="ampm-delete-btn" onclick="removeAmPm('${day.id}', ${index})" title="Удалить AM/PM">✕</button>
+                            </div>
+                        `;
+                    } else {
+                        ampmBlock = `<button class="action-btn" style="padding: 6px 10px; font-size: 12px;" onclick="addAmPm('${day.id}', ${index})">+ AM/PM</button>`;
+                    }
+
+                    island.innerHTML = `
+                        <div class="time-box">
+                            <input type="text" class="text-input time-input" value="${entry.time || ''}" placeholder="12:00" oninput="handleTimeInput(this, '${day.id}', ${index})">
+                            ${ampmBlock}
+                        </div>
+                        <input type="text" class="text-input name-input" value="${entry.name || ''}" placeholder="Имя..." oninput="updateEntry('${day.id}', ${index}, 'name', this.value)">
+                        <input type="text" class="text-input desc-input" value="${entry.desc || ''}" placeholder="Описание..." oninput="updateEntry('${day.id}', ${index}, 'desc', this.value)">
+                        <button class="action-btn delete-btn" onclick="deleteEntry('${day.id}', ${index})">✕</button>
+                    `;
+                    listContainer.appendChild(island);
+                });
+            });
+        }
+
+        function toggleModal() {
+            document.getElementById('myModal').classList.toggle('active');
+        }
+
+        function toggleInfoModal() {
+            document.getElementById('infoModal').classList.toggle('active');
+        }
+
+        function toggleSettingsModal() {
+            document.getElementById('settingsModal').classList.toggle('active');
+        }
+
+        function toggleChoiceModal() {
+            document.getElementById('choiceModal').classList.toggle('active');
+        }
+
+        function chooseCalendar() {
+            toggleChoiceModal();
+            toggleModal();
+        }
+
+        function chooseNotepad() {
+            toggleChoiceModal();
+            toggleNotepadModal();
+        }
+
+        function toggleNotepadModal() {
+            const notepadModal = document.getElementById('notepadModal');
+            const wasActive = notepadModal.classList.contains('active');
+            notepadModal.classList.toggle('active');
+            if (!wasActive) renderNotepadLines();
+        }
+
+        function loadNotepadLines() {
+            return JSON.parse(localStorage.getItem('notepadLines')) || [];
+        }
+
+        function saveNotepadLines(lines) {
+            localStorage.setItem('notepadLines', JSON.stringify(lines));
+        }
+
+        function renderNotepadLines() {
+            const container = document.getElementById('notepadLinesContainer');
+            const lines = loadNotepadLines();
+            container.innerHTML = '';
+
+            lines.forEach((text, index) => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'notepad-line';
+                lineDiv.innerHTML = `
+                    <div class="notepad-content-wrapper">
+                        <span>${text}</span>
+                    </div>
+                    <button class="notepad-line-delete" onclick="deleteNotepadLine(${index})">✕</button>
+                `;
+                container.appendChild(lineDiv);
+            });
+        }
+
+        function handleNotepadKey(event) {
+            if (event.key === 'Enter') addNotepadLine();
+        }
+
+        function addNotepadLine() {
+            const input = document.getElementById('notepadInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            let lines = loadNotepadLines();
+            lines.unshift(text);
+            saveNotepadLines(lines);
+            input.value = '';
+            renderNotepadLines();
+        }
+
+        function deleteNotepadLine(index) {
+            let lines = loadNotepadLines();
+            lines.splice(index, 1);
+            saveNotepadLines(lines);
+            renderNotepadLines();
+        }
+
+        function toggleDay(element) {
+            element.parentElement.classList.toggle('active');
+        }
+
+        function addEntry(dayId) {
+            const data = loadData();
+            if (!data[dayId]) data[dayId] = [];
+
+            if (data[dayId].length < 3) {
+                const autoTime = getCurrentTimeAndAmPm();
+                data[dayId].push({ time: autoTime.time, ampm: autoTime.ampm, name: '', desc: '' });
+                saveData(data);
+                renderDays();
+                document.querySelector(`[data-day-id="${dayId}"]`).classList.add('active');
+            }
+        }
+
+        function removeAmPm(dayId, index) {
+            const data = loadData();
+            if (data[dayId] && data[dayId][index]) {
+                data[dayId][index].ampm = null;
+                saveData(data);
+                renderDays();
+                document.querySelector(`[data-day-id="${dayId}"]`).classList.add('active');
+            }
+        }
+
+        function addAmPm(dayId, index) {
+            const data = loadData();
+            if (data[dayId] && data[dayId][index]) {
+                data[dayId][index].ampm = 'AM';
+                saveData(data);
+                renderDays();
+                document.querySelector(`[data-day-id="${dayId}"]`).classList.add('active');
+            }
+        }
+
+        function handleTimeInput(input, dayId, index) {
+            let filtered = input.value.replace(/[^0-9:]/g, '');
+            input.value = filtered;
+            updateEntry(dayId, index, 'time', filtered);
+        }
+
+        function updateEntry(dayId, index, field, value) {
+            const data = loadData();
+            if (data[dayId] && data[dayId][index]) {
+                data[dayId][index][field] = value;
+                saveData(data);
+            }
+        }
+
+        function deleteEntry(dayId, index) {
+            const data = loadData();
+            if (data[dayId]) {
+                data[dayId].splice(index, 1);
+                saveData(data);
+                renderDays();
+                document.querySelector(`[data-day-id="${dayId}"]`).classList.add('active');
+            }
+        }
+
+        renderDays();
+    </script>
+</body>
+</html>
